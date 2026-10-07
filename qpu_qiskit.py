@@ -11,4 +11,10 @@ service = QiskitRuntimeService(
     instance=instance
 )
 
-print("Successfully connected to IBM Quantum!")
+backend = service.least_busy(
+    operational=True,
+    simulator=False,
+    min_num_qubits=2
+)
+
+print("Using:", backend.name)
