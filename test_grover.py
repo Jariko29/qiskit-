@@ -26,11 +26,24 @@ def grover_oracle(deimos_states):
         qc.x(zero_ind)
     return qc
 
-deimos_state = '1110'
+deimos_state = '1110010'
 oracle = grover_oracle(deimos_state)
 oracle.draw(output='mpl', style='iqp', filename='grover_oracle.png')
 
+grover_op = grover_operator(oracle)
+grover_op.decompose(reps=0).draw(output='mpl', style='iqp', filename='grover_operator.png')
+
+optimal_num_iter = math.floor(math.pi / (4 * math.asin(math.sqrt(len(deimos_state) / 2**grover_op.num_qubits))))
+print(optimal_num_iter)
+
+qc = QuantumCircuit(grover_op.num_qubits)
+qc.h(range(grover_op.num_qubits))
+qc.compose(grover_op.power(optimal_num_iter), inplace=True)
+qc.measure_all()
+qc.draw(output='mpl', style='iqp', filename='grover_circuit.png')
+
 backend = AerSimulator()
-counts = run_circuit_and_get_counts(oracle, backend, shots=3000)
-fig = plot_histogram(counts)
-plt.savefig("grover_oracle_histogram.png")
+counts = run_circuit_and_get_counts(qc, backend, shots=500)
+#fig = plot_histogram(counts)
+fig = plot_distribution(counts)
+plt.savefig("grover_circuit_histogram.png")
